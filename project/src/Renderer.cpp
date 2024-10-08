@@ -77,18 +77,24 @@ void Renderer::Render(Scene* pScene) const
 						{
 							if (!pScene->DoesHit(shadowRay))
 							{
-								finalColor += materials[closestHit.materialIndex]->Shade(closestHit, shadowRay.direction, vieuwRay.direction) * observedArea;
+								if (m_ShadowsEnabled)
+								{
+									finalColor += materials[closestHit.materialIndex]->Shade(closestHit, shadowRay.direction, vieuwRay.direction) * observedArea;
+								}
+								else
+								{
+									finalColor += materials[closestHit.materialIndex]->Shade(closestHit, shadowRay.direction, vieuwRay.direction);
+								}
 							}
 							
 						}
-						if (m_ShadowsEnabled)
-						{
-							if (pScene->DoesHit(shadowRay))
+						
+							/*if (pScene->DoesHit(shadowRay))
 							{
 								finalColor *= 0.5f;
 
-							}
-						}
+							}*/
+						
 					}
 				
 
