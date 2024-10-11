@@ -62,38 +62,51 @@ void Renderer::Render(Scene* pScene) const
 					for (int idx{}; idx < lights.size(); ++idx)
 					{
 						
-						/*if (m_CurrentLightingMode == LightingMode::ObservedArea)
-						{
-							finalColor += materials[closestHit.materialIndex]->Shade(closestHit, lights[idx].direction, vieuwRay.direction);
-						}*/
-						Ray shadowRay{ closestHit.origin + 0.01f * closestHit.normal,LightUtils::GetDirectionToLight(lights[idx], closestHit.origin)};
-						shadowRay.direction.Normalize();
-						shadowRay.max = LightUtils::GetDirectionToLight(lights[idx], closestHit.origin).Magnitude();
-						float observedArea{ Vector3::Dot(closestHit.normal, shadowRay.direction)};
-						/*const Vector3 lightDirection = LightUtils::GetDirectionToLight(lights[idx], closestHit.origin);
-						float observedArea{ Vector3::Dot(closestHit.normal, lightDirection.Normalized()) };*/
 						
-						if (observedArea > 0 )
+						Ray shadowRay{ closestHit.origin + 0.01f * closestHit.normal,LightUtils::GetDirectionToLight(lights[idx], closestHit.origin).Normalized()};
+						//shadowRay.direction.Normalize();
+						shadowRay.max = LightUtils::GetDirectionToLight(lights[idx], closestHit.origin).Magnitude();
+						float observedArea{ Vector3::Dot(closestHit.normal, shadowRay.direction) };
+						
+						
+						if (observedArea > 0)
 						{
-							if (!pScene->DoesHit(shadowRay))
-							{
-								if (m_ShadowsEnabled)
+							
+								if (m_CurrentLightingMode == LightingMode::ObservedArea)
 								{
-									finalColor += materials[closestHit.materialIndex]->Shade(closestHit, shadowRay.direction, vieuwRay.direction) * observedArea;
+
+									finalColor += ColorRGB(observedArea, observedArea, observedArea);
+
 								}
-								else
+								if (m_CurrentLightingMode == LightingMode::Radiance)
+								{
+									finalColor += LightUtils::GetRadiance(lights[idx], closestHit.origin);
+								}
+								if (m_CurrentLightingMode == LightingMode::Combined)
+								{
+									if (observedArea > 0)
+									{
+										finalColor += materials[closestHit.materialIndex]->Shade(closestHit, shadowRay.direction, vieuwRay.direction)
+											* observedArea 
+											* LightUtils::GetRadiance(lights[idx], closestHit.origin);
+									}
+
+								}
+								if (m_CurrentLightingMode == LightingMode::BRDF)
 								{
 									finalColor += materials[closestHit.materialIndex]->Shade(closestHit, shadowRay.direction, vieuwRay.direction);
+
 								}
-							}
+								//else if ()
+								if (m_ShadowsEnabled)
+								{
+									if (pScene->DoesHit(shadowRay))
+									{
+										finalColor *= 0.5f;
+									}
+								}
 							
 						}
-						
-							/*if (pScene->DoesHit(shadowRay))
-							{
-								finalColor *= 0.5f;
-
-							}*/
 						
 					}
 				

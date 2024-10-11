@@ -25,14 +25,14 @@ namespace dae
 			{
 				float t{ (-B - sqrt(Discriminant)) / 2 * A };
 				if (t < ray.min) t = (-B + sqrt(Discriminant)) / 2 * A; // we always take the subtraction unless t < tMin
-				if (t > ray.min && t < ray.max)
+				if (abs(t) > ray.min && t < ray.max)
 				{
 
 					hitRecord.didHit = true;
 					hitRecord.t = t;
 					hitRecord.origin = ray.origin + t * ray.direction;
 					hitRecord.materialIndex = sphere.materialIndex;
-					hitRecord.normal = (hitRecord.origin - sphere.origin) / powf(sphere.radius, 2);
+					hitRecord.normal = (hitRecord.origin - sphere.origin) / sphere.radius;
 				}
 
 
@@ -126,9 +126,9 @@ namespace dae
 
 		inline ColorRGB GetRadiance(const Light& light, const Vector3& target)
 		{
-			//todo W3
-			throw std::runtime_error("Not Implemented Yet");
-			return {};
+			float bottom{ Vector3::Dot(light.origin - target, light.origin - target) };
+			ColorRGB color{ light.color * (light.intensity / (bottom)) };
+			return { color };
 		}
 	}
 

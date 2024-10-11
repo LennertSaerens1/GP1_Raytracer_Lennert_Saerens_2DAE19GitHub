@@ -38,7 +38,7 @@ namespace dae
 		};
 
 		LightingMode m_CurrentLightingMode{ LightingMode::ObservedArea };
-		bool m_ShadowsEnabled{ true };
+		bool m_ShadowsEnabled{ false };
 
 		SDL_Window* m_pWindow{};
 
