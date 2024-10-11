@@ -116,7 +116,7 @@ namespace dae
 			const ColorRGB F{ BRDF::FresnelFunction_Schlick(h,-v,f0) };
 			const float D{ BRDF::NormalDistribution_GGX(hitRecord.normal, h, m_Roughness) };
 			const float G{ BRDF::GeometryFunction_Smith(hitRecord.normal, -v, l ,m_Roughness) };
-			ColorRGB specular{ ((F * D * G) / (4 * (Vector3::Dot(-v, hitRecord.normal) * Vector3::Dot(l, hitRecord.normal)))) };	
+			ColorRGB specular{ ((D * G * F) / (4 * (Vector3::Dot(-v, hitRecord.normal) * Vector3::Dot(l, hitRecord.normal)))) };	
 
 			ColorRGB kd{ ColorRGB{1.f,1.f,1.f} - F };
 			if (m_Metalness == 1)
