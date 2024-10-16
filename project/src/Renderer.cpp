@@ -67,7 +67,9 @@ void Renderer::Render(Scene* pScene) const
 						//shadowRay.direction.Normalize();
 						shadowRay.max = LightUtils::GetDirectionToLight(lights[idx], closestHit.origin).Magnitude();
 						float observedArea{ Vector3::Dot(closestHit.normal, shadowRay.direction) };
-						
+						float shadowValue{};
+						if (m_ShadowsEnabled && pScene->DoesHit(shadowRay)) shadowValue = 0.5f;
+						else shadowValue = 1.0f;
 						
 						if (observedArea > 0)
 						{
@@ -75,36 +77,35 @@ void Renderer::Render(Scene* pScene) const
 								if (m_CurrentLightingMode == LightingMode::ObservedArea)
 								{
 
-									finalColor += ColorRGB(observedArea, observedArea, observedArea);
+									finalColor += ColorRGB(observedArea, observedArea, observedArea)* shadowValue;
 
 								}
 								if (m_CurrentLightingMode == LightingMode::Radiance)
 								{
-									finalColor += LightUtils::GetRadiance(lights[idx], closestHit.origin);
+									finalColor += LightUtils::GetRadiance(lights[idx], closestHit.origin) * shadowValue;
 								}
 								if (m_CurrentLightingMode == LightingMode::Combined)
 								{
-									if (observedArea > 0)
-									{
-										finalColor += materials[closestHit.materialIndex]->Shade(closestHit, shadowRay.direction, vieuwRay.direction)
-											* observedArea 
-											* LightUtils::GetRadiance(lights[idx], closestHit.origin);
-									}
+									
+									finalColor += materials[closestHit.materialIndex]->Shade(closestHit, shadowRay.direction, vieuwRay.direction)
+										* observedArea 
+										* LightUtils::GetRadiance(lights[idx], closestHit.origin)
+										* shadowValue;
 
 								}
 								if (m_CurrentLightingMode == LightingMode::BRDF)
 								{
-									finalColor += materials[closestHit.materialIndex]->Shade(closestHit, shadowRay.direction, vieuwRay.direction);
+									finalColor += materials[closestHit.materialIndex]->Shade(closestHit, shadowRay.direction, vieuwRay.direction) * shadowValue;
 
 								}
 								//else if ()
-								if (m_ShadowsEnabled)
+								/*if (m_ShadowsEnabled)
 								{
 									if (pScene->DoesHit(shadowRay))
 									{
 										finalColor *= 0.5f;
 									}
-								}
+								}*/
 							
 						}
 						

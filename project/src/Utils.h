@@ -25,7 +25,7 @@ namespace dae
 			{
 				float t{ (-B - sqrt(Discriminant)) / 2 * A };
 				if (t < ray.min) t = (-B + sqrt(Discriminant)) / 2 * A; // we always take the subtraction unless t < tMin
-				if (abs(t) > ray.min && t < ray.max)
+				if (t > ray.min && t < ray.max)
 				{
 
 					hitRecord.didHit = true;
@@ -87,9 +87,72 @@ namespace dae
 		//TRIANGLE HIT-TESTS
 		inline bool HitTest_Triangle(const Triangle& triangle, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
-			//todo W5
-			throw std::runtime_error("Not Implemented Yet");
-			return false;
+			//throw std::runtime_error("Not Implemented Yet");
+			float dot{ Vector3::Dot(triangle.normal, ray.direction) };
+			Vector3 a{ triangle.v1 - triangle.v0 };
+			Vector3 b{ triangle.v2 - triangle.v0 };
+			//Vector3 normal = Vector3::Cross(a, b);
+			if (Vector3::Dot(triangle.normal, ray.direction) == 0) return false;
+
+			Vector3 l{ triangle.v0 - ray.origin };
+			float t{ Vector3::Dot(l,triangle.normal)/ Vector3::Dot(ray.direction,triangle.normal) };
+			if (t < ray.min || t > ray.max)
+				return false;
+
+			Vector3 P = ray.origin + ray.direction * t;
+
+			
+			if (!ignoreHitRecord)
+			{
+				bool toCheck{ (triangle.cullMode == TriangleCullMode::BackFaceCulling && dot < 0.f) || (triangle.cullMode == TriangleCullMode::FrontFaceCulling && dot > 0.f) || (triangle.cullMode == TriangleCullMode::NoCulling) };
+
+				if (toCheck)
+				{
+					Vector3 e0{ triangle.v1 - triangle.v0 };
+					Vector3 e1{ triangle.v2 - triangle.v1 };
+					Vector3 e2{ triangle.v0 - triangle.v2 };
+					Vector3 p0{ P - triangle.v0 };
+					Vector3 p1{ P - triangle.v1 };
+					Vector3 p2{ P - triangle.v2 };
+
+					if (Vector3::Dot(Vector3::Cross(e0, p0), triangle.normal) < 0) return false;
+					if (Vector3::Dot(Vector3::Cross(e1, p1), triangle.normal) < 0) return false;
+					if (Vector3::Dot(Vector3::Cross(e2, p2), triangle.normal) < 0) return false;
+					hitRecord.didHit = true;
+					hitRecord.materialIndex = triangle.materialIndex;
+					hitRecord.origin = P;
+					hitRecord.normal = triangle.normal;
+					hitRecord.t = t;
+					return true;
+				}
+				
+			}
+			else
+			{
+				bool toCheck{ (triangle.cullMode == TriangleCullMode::BackFaceCulling && dot > 0.f) || (triangle.cullMode == TriangleCullMode::FrontFaceCulling && dot < 0.f) || (triangle.cullMode == TriangleCullMode::NoCulling) };
+
+				if (toCheck)
+				{
+
+					Vector3 e0{ triangle.v1 - triangle.v0 };
+					Vector3 e1{ triangle.v2 - triangle.v1 };
+					Vector3 e2{ triangle.v0 - triangle.v2 };
+					Vector3 p0{ P - triangle.v0 };
+					Vector3 p1{ P - triangle.v1 };
+					Vector3 p2{ P - triangle.v2 };
+
+					if (Vector3::Dot(Vector3::Cross(e0, p0), triangle.normal) < 0) return false;
+					if (Vector3::Dot(Vector3::Cross(e1, p1), triangle.normal) < 0) return false;
+					if (Vector3::Dot(Vector3::Cross(e2, p2), triangle.normal) < 0) return false;
+					hitRecord.didHit = true;
+					hitRecord.materialIndex = triangle.materialIndex;
+					hitRecord.origin = P;
+					hitRecord.normal = triangle.normal;
+					hitRecord.t = t;
+					return true;
+
+				}
+			}
 		}
 
 		inline bool HitTest_Triangle(const Triangle& triangle, const Ray& ray)
@@ -101,8 +164,17 @@ namespace dae
 #pragma region TriangeMesh HitTest
 		inline bool HitTest_TriangleMesh(const TriangleMesh& mesh, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
-			//todo W5
-			throw std::runtime_error("Not Implemented Yet");
+			
+			for (int idx{}; idx < mesh.indices.size(); idx += 3)
+			{
+				Triangle tempTriangle(mesh.transformedPositions[mesh.indices[idx]],
+					mesh.transformedPositions[mesh.indices[idx + 1]],
+					mesh.transformedPositions[mesh.indices[idx + 2]]);
+				tempTriangle.normal = mesh.transformedNormals[idx/3];
+				tempTriangle.cullMode = mesh.cullMode;
+				tempTriangle.materialIndex = mesh.materialIndex;
+				if (HitTest_Triangle(tempTriangle, ray, hitRecord, ignoreHitRecord)) return true;
+			}
 			return false;
 		}
 
