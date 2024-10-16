@@ -47,7 +47,7 @@ namespace dae
 
 		std::vector<Plane> m_PlaneGeometries{};
 		std::vector<Sphere> m_SphereGeometries{};
-		//std::vector<Triangle> m_Triangles{};
+		std::vector<Triangle> m_Triangles{};
 		std::vector<TriangleMesh> m_TriangleMeshGeometries{};
 		std::vector<Light> m_Lights{};
 		std::vector<Material*> m_Materials{};
@@ -119,6 +119,29 @@ namespace dae
 		Scene_W4& operator=(Scene_W4&&) noexcept = delete;
 
 		void Initialize() override;
+		void Update(Timer* pTimer) override;
+
+	private:
+		TriangleMesh* pMesh{ nullptr };
+	};
+	
+	class Scene_W4_ReferenceScene final : public Scene
+	{
+	public:
+		Scene_W4_ReferenceScene() = default;
+		~Scene_W4_ReferenceScene() override = default;
+
+		Scene_W4_ReferenceScene(const Scene_W4_ReferenceScene&) = delete;
+		Scene_W4_ReferenceScene(Scene_W4_ReferenceScene&&) noexcept = delete;
+		Scene_W4_ReferenceScene& operator=(const Scene_W4_ReferenceScene&) = delete;
+		Scene_W4_ReferenceScene& operator=(Scene_W4_ReferenceScene&&) noexcept = delete;
+
+		void Initialize() override;
+		void Update(Timer* pTimer) override;
+
+	private:
+		TriangleMesh* m_Meshes[3]{};
+
 	};
 
 

@@ -129,25 +129,29 @@ namespace dae
 			{
 				Vector3 a{ positions[indices[idx + 1]], positions[indices[idx]] };
 				Vector3 b{ positions[indices[idx + 2]], positions[indices[idx]] };
-				normals.emplace_back(Vector3::Cross(a, b));
+				normals.emplace_back(Vector3::Cross(a, b).Normalized());
 			}
 		}
 
 		void UpdateTransforms()
 		{
 			//Calculate Final Transform
-			const auto finalTransform = translationTransform * rotationTransform * scaleTransform;
+			const auto finalTransform =  rotationTransform * translationTransform * scaleTransform;
 
 			//Transform Positions (positions > transformedPositions)
 			for (int idx{}; idx < positions.size(); ++idx)
 			{
+				Matrix posMatrix{};
+				posMatrix[0] = { positions[idx], 1 };
+
 				if (transformedPositions.size() <= idx)
-				{
-					transformedPositions.emplace_back() = finalTransform.TransformVector(positions[idx]);
+				{	
+					transformedPositions.emplace_back() = ((posMatrix * finalTransform)[0]);
+					//transformedPositions.emplace_back() = finalTransform.TransformVector(positions[idx]));
 				}
 				else
 				{
-					transformedPositions[idx] = finalTransform.TransformVector(positions[idx]);	
+					transformedPositions[idx] = ((posMatrix * finalTransform)[0]);	
 				}
 				
 			}
@@ -155,13 +159,16 @@ namespace dae
 			//Transform Normals (normals > transformedNormals)
 			for (int idx{}; idx < normals.size(); ++idx)
 			{
+				Matrix normMatrix{};
+				normMatrix[0] = { normals[idx], 0};
+
 				if (transformedNormals.size() <= idx)
 				{
-					transformedNormals.emplace_back() = finalTransform.TransformVector(normals[idx]);
+					transformedNormals.emplace_back() = ((normMatrix * rotationTransform)[0]);
 				}
 				else
 				{
-					transformedNormals[idx] = rotationTransform.TransformVector(normals[idx]);
+					transformedNormals[idx] = ((normMatrix * rotationTransform)[0]);
 				}
 			}
 		}

@@ -101,33 +101,48 @@ namespace dae
 
 			Vector3 P = ray.origin + ray.direction * t;
 
-			
-			if (!ignoreHitRecord)
+			switch (triangle.cullMode)
 			{
-				bool toCheck{ (triangle.cullMode == TriangleCullMode::BackFaceCulling && dot < 0.f) || (triangle.cullMode == TriangleCullMode::FrontFaceCulling && dot > 0.f) || (triangle.cullMode == TriangleCullMode::NoCulling) };
-
-				if (toCheck)
-				{
-					Vector3 e0{ triangle.v1 - triangle.v0 };
-					Vector3 e1{ triangle.v2 - triangle.v1 };
-					Vector3 e2{ triangle.v0 - triangle.v2 };
-					Vector3 p0{ P - triangle.v0 };
-					Vector3 p1{ P - triangle.v1 };
-					Vector3 p2{ P - triangle.v2 };
-
-					if (Vector3::Dot(Vector3::Cross(e0, p0), triangle.normal) < 0) return false;
-					if (Vector3::Dot(Vector3::Cross(e1, p1), triangle.normal) < 0) return false;
-					if (Vector3::Dot(Vector3::Cross(e2, p2), triangle.normal) < 0) return false;
-					hitRecord.didHit = true;
-					hitRecord.materialIndex = triangle.materialIndex;
-					hitRecord.origin = P;
-					hitRecord.normal = triangle.normal;
-					hitRecord.t = t;
-					return true;
-				}
-				
+			case TriangleCullMode::BackFaceCulling:
+				if (dot > 0 && ignoreHitRecord == false) return false;
+				if (dot < 0 && ignoreHitRecord == true) return false;
+				break;
+			case TriangleCullMode::FrontFaceCulling:
+				if (dot < 0 && ignoreHitRecord == false) return false;
+				if (dot > 0 && ignoreHitRecord == true) return false;
+				break;
+			case TriangleCullMode::NoCulling:
+				break;
 			}
-			else
+
+			Vector3 e0{ triangle.v1 - triangle.v0 };
+			Vector3 e1{ triangle.v2 - triangle.v1 };
+			Vector3 e2{ triangle.v0 - triangle.v2 };
+			Vector3 p0{ P - triangle.v0 };
+			Vector3 p1{ P - triangle.v1 };
+			Vector3 p2{ P - triangle.v2 };
+
+			if (Vector3::Dot(Vector3::Cross(e0, p0), triangle.normal) < 0) return false;
+			if (Vector3::Dot(Vector3::Cross(e1, p1), triangle.normal) < 0) return false;
+			if (Vector3::Dot(Vector3::Cross(e2, p2), triangle.normal) < 0) return false;
+			hitRecord.didHit = true;
+			hitRecord.materialIndex = triangle.materialIndex;
+			hitRecord.origin = P;
+			hitRecord.normal = triangle.normal;
+			hitRecord.t = t;
+			return true;
+			
+			/*if (!ignoreHitRecord)
+			{
+				bool toCheck{ (triangle.cullMode == TriangleCullMode::BackFaceCulling && dot < 0.f) || (triangle.cullMode == TriangleCullMode::FrontFaceCulling && dot > 0.f) || (triangle.cullMode == TriangleCullMode::NoCulling) };*/
+
+				/*if (toCheck)
+				{*/
+					
+			/*	}
+				
+			}*/
+			/*else
 			{
 				bool toCheck{ (triangle.cullMode == TriangleCullMode::BackFaceCulling && dot > 0.f) || (triangle.cullMode == TriangleCullMode::FrontFaceCulling && dot < 0.f) || (triangle.cullMode == TriangleCullMode::NoCulling) };
 
@@ -152,7 +167,7 @@ namespace dae
 					return true;
 
 				}
-			}
+			}*/
 		}
 
 		inline bool HitTest_Triangle(const Triangle& triangle, const Ray& ray)
